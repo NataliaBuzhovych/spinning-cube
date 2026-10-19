@@ -46,4 +46,6 @@ See [SPEC.md](SPEC.md) for what to build.
 - Small, focused commits using Conventional Commits (`feat:`, `fix:`, `chore:`, `docs:`, `refactor:`...).
 - Never use `--no-verify` (or otherwise skip hooks).
 - Never force push.
+- Never push to `main`; always work in a feature branch (`feat/...`, `fix/...`, `chore/...`) and open a pull request.
+- Never weaken or delete a test to make it pass; fix the cause.
 - Run `npm run lint`, `npm run typecheck`, `npm test` and `npm run format:check` before committing code changes.
