@@ -7,14 +7,17 @@ See [SPEC.md](SPEC.md) for what to build.
 - Vite + React + TypeScript
 - three, @react-three/fiber (R3F), @react-three/drei
 - ESLint (typescript-eslint, react-hooks) + Prettier
-- Vitest + Testing Library (jsdom)
+- Vitest + Testing Library + @react-three/test-renderer (unit)
+- Playwright (e2e, Chromium)
 - TypeScript pinned to 6.0.x (typescript-eslint doesn't support 7 yet)
 
 ## Structure
 
 - `index.html` — Vite entry
 - `src/main.tsx` — React root
-- `src/App.tsx` — top-level component (canvas lives here)
+- `src/App.tsx` — full-screen `Canvas`, lights, `OrbitControls`
+- `src/Cube.tsx` — rotating cube mesh
+- `e2e/` — Playwright specs; `.github/workflows/ci.yml` — CI
 - `src/index.css` — global styles
 - `src/*.test.tsx` — tests, next to the code; `src/test-setup.ts` loads jest-dom
 - `public/` — static assets
@@ -28,6 +31,7 @@ See [SPEC.md](SPEC.md) for what to build.
 - `npm run lint` — ESLint
 - `npm run typecheck` — `tsc -b`
 - `npm test` — Vitest (single run)
+- `npm run e2e` — Playwright (builds and serves the app itself; first run needs `npx playwright install chromium`)
 - `npm run format` / `npm run format:check` — Prettier
 - `npm run preview` — serve the production build
 
