@@ -31,6 +31,12 @@ See [SPEC.md](SPEC.md) for what to build.
 - `npm run format` / `npm run format:check` — Prettier
 - `npm run preview` — serve the production build
 
+## Quality gates
+
+- Claude Code Stop hook (`.claude/hooks/quality-gate.sh`) runs lint, typecheck and tests; on failure it prints to stderr and exits 2, giving up after 5 failed attempts.
+- Husky `pre-push` hook runs the same checks.
+- `git push --force`/`-f` and `--no-verify` are denied in `.claude/settings.json`.
+
 ## Rules
 
 - Small, focused commits using Conventional Commits (`feat:`, `fix:`, `chore:`, `docs:`, `refactor:`...).
