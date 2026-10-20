@@ -67,6 +67,7 @@ The first e2e run needs the Chromium browser: `npx playwright install chromium`.
 ├── .claude/
 │   ├── settings.json           # Hook registration and permission deny rules
 │   └── hooks/quality-gate.sh   # Stop hook
+├── .husky/pre-commit           # Git pre-commit hook
 ├── .husky/pre-push             # Git pre-push hook
 └── .github/workflows/ci.yml    # CI workflow
 ```
@@ -82,7 +83,7 @@ The repository is set up so that AI agents can work on it autonomously while gua
 - Small, focused commits using Conventional Commits.
 - Never use `--no-verify` or otherwise skip hooks.
 - Never force push.
-- Never push to `main`; work in a feature branch (`feat/...`, `fix/...`, `chore/...`) and open a pull request.
+- Follow the Git workflow section: every task gets a new branch from an updated `main` (`feat/...`, `fix/...`, `docs/...`, `chore/...`), never commit on another task's branch, never push to `main`, and open a pull request.
 - Never weaken or delete a test to make it pass; fix the cause.
 - Run `npm run lint`, `npm run typecheck`, `npm test` and `npm run format:check` before committing code changes.
 
@@ -95,6 +96,10 @@ The repository is set up so that AI agents can work on it autonomously while gua
 Registered in `.claude/settings.json`, `.claude/hooks/quality-gate.sh` runs when Claude Code tries to finish. It runs `npm run lint`, `npm run typecheck` and `npm test`. If any fail, it prints the output to stderr and exits with code 2, so Claude keeps working to fix them. After 5 failed attempts it gives up and lets Claude stop.
 
 `.claude/settings.json` also denies `git push --force`, `-f`, `--force-with-lease` and any git command using `--no-verify`.
+
+### Husky pre-commit hook
+
+`.husky/pre-commit` blocks any commit made while the current branch is `main`, printing "Create a feature branch first".
 
 ### Husky pre-push hook
 
@@ -109,4 +114,4 @@ Registered in `.claude/settings.json`, `.claude/hooks/quality-gate.sh` runs when
 
 ### Branch protection
 
-Work goes through pull requests: `main` is never pushed to directly (a rule in CLAUDE.md), and CI runs on every pull request. The actual branch protection settings (for example required status checks) are configured on GitHub, not in this repository, so they are not described here.
+Work goes through pull requests: `main` is never pushed to directly (a rule in CLAUDE.md), and CI runs on every pull request. CI has two jobs, `checks` and `e2e`, and both are required status checks in branch protection before a PR can be merged.

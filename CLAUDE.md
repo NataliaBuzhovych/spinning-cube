@@ -38,14 +38,23 @@ See [SPEC.md](SPEC.md) for what to build.
 ## Quality gates
 
 - Claude Code Stop hook (`.claude/hooks/quality-gate.sh`) runs lint, typecheck and tests; on failure it prints to stderr and exits 2, giving up after 5 failed attempts.
+- Husky `pre-commit` hook (`.husky/pre-commit`) blocks commits on `main` and prints "Create a feature branch first".
 - Husky `pre-push` hook runs the same checks.
+- CI (`.github/workflows/ci.yml`) has two jobs, `checks` (lint, typecheck, unit tests) and `e2e` (Playwright). Both are required status checks in branch protection before a PR can be merged.
 - `git push --force`/`-f` and `--no-verify` are denied in `.claude/settings.json`.
+
+## Git workflow
+
+- Before starting ANY task, run `git status` and `git branch --show-current`.
+- Every task gets its own new branch. Run `git fetch`, `git checkout main`, `git pull`, then `git checkout -b <type>/<short-topic>` from the updated `main`.
+- Never commit on a branch created for a different task, even if it is not `main`. Never reuse a branch whose pull request is already merged.
+- Branch names: `feat/...`, `fix/...`, `docs/...`, `chore/...`.
+- Never push to `main`. Push only the task branch and tell the user to open a PR.
 
 ## Rules
 
 - Small, focused commits using Conventional Commits (`feat:`, `fix:`, `chore:`, `docs:`, `refactor:`...).
 - Never use `--no-verify` (or otherwise skip hooks).
 - Never force push.
-- Never push to `main`; always work in a feature branch (`feat/...`, `fix/...`, `chore/...`) and open a pull request.
 - Never weaken or delete a test to make it pass; fix the cause.
 - Run `npm run lint`, `npm run typecheck`, `npm test` and `npm run format:check` before committing code changes.
