@@ -6,8 +6,8 @@ See [SPEC.md](SPEC.md) for what to build.
 
 - Vite + React + TypeScript
 - three, @react-three/fiber (R3F), @react-three/drei
-- ESLint (typescript-eslint, react-hooks) + Prettier
-- Vitest + Testing Library + @react-three/test-renderer (unit)
+- ESLint (typescript-eslint, react-hooks, @vitest/eslint-plugin, eslint-plugin-playwright) + Prettier
+- Vitest + Testing Library + @react-three/test-renderer (unit), v8 coverage
 - Playwright (e2e, Chromium)
 - TypeScript pinned to 6.0.x (typescript-eslint doesn't support 7 yet)
 
@@ -31,6 +31,7 @@ See [SPEC.md](SPEC.md) for what to build.
 - `npm run lint` — ESLint
 - `npm run typecheck` — `tsc -b`
 - `npm test` — Vitest (single run)
+- `npm run test:coverage` — Vitest with v8 coverage; fails below the thresholds in `vite.config.ts`
 - `npm run e2e` — Playwright (builds and serves the app itself; first run needs `npx playwright install chromium`)
 - `npm run format` / `npm run format:check` — Prettier
 - `npm run preview` — serve the production build
@@ -40,7 +41,7 @@ See [SPEC.md](SPEC.md) for what to build.
 - Claude Code Stop hook (`.claude/hooks/quality-gate.sh`) runs lint, typecheck and tests; on failure it prints to stderr and exits 2, giving up after 5 failed attempts.
 - Husky `pre-commit` hook (`.husky/pre-commit`) blocks commits on `main` and prints "Create a feature branch first".
 - Husky `pre-push` hook runs the same checks.
-- CI (`.github/workflows/ci.yml`) has two jobs, `checks` (lint, typecheck, unit tests) and `e2e` (Playwright). Both are required status checks in branch protection before a PR can be merged.
+- CI (`.github/workflows/ci.yml`) has two jobs, `checks` (lint, typecheck, unit tests with coverage) and `e2e` (Playwright). Both are required status checks in branch protection before a PR can be merged.
 - `git push --force`/`-f` and `--no-verify` are denied in `.claude/settings.json`.
 
 ## Git workflow
@@ -56,5 +57,7 @@ See [SPEC.md](SPEC.md) for what to build.
 - Small, focused commits using Conventional Commits (`feat:`, `fix:`, `chore:`, `docs:`, `refactor:`...).
 - Never use `--no-verify` (or otherwise skip hooks).
 - Never force push.
-- Never weaken or delete a test to make it pass; fix the cause.
-- Run `npm run lint`, `npm run typecheck`, `npm test` and `npm run format:check` before committing code changes.
+- Never weaken or delete a test to make it pass; fix the cause. This is machine-enforced:
+  - ESLint fails on `.skip`, `.only`, `.todo`, `.fixme`, `skipIf` and runtime `skip()` in unit and e2e tests (`eslint.config.js`).
+  - Coverage thresholds in `vite.config.ts` are set from actual coverage. Raise them when coverage improves; never lower them.
+- Run `npm run lint`, `npm run typecheck`, `npm run test:coverage` and `npm run format:check` before committing code changes.

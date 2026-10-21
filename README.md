@@ -8,8 +8,8 @@ A single rotating cube rendered in a full-screen canvas, built with React Three 
 
 - Vite + React + TypeScript
 - three, @react-three/fiber (R3F), @react-three/drei
-- ESLint (typescript-eslint, react-hooks) + Prettier
-- Vitest + Testing Library + @react-three/test-renderer (unit tests)
+- ESLint (typescript-eslint, react-hooks, @vitest/eslint-plugin, eslint-plugin-playwright) + Prettier
+- Vitest + Testing Library + @react-three/test-renderer (unit tests), v8 coverage
 - Playwright (e2e, Chromium)
 
 ## Install and run
@@ -30,18 +30,19 @@ The first e2e run needs the Chromium browser: `npx playwright install chromium`.
 
 ## npm scripts
 
-| Script                 | What it does                                            |
-| ---------------------- | ------------------------------------------------------- |
-| `npm run dev`          | Start the Vite dev server                               |
-| `npm run build`        | Typecheck (`tsc -b`) and produce a production build     |
-| `npm run preview`      | Serve the production build                              |
-| `npm run lint`         | Run ESLint                                              |
-| `npm run typecheck`    | Run `tsc -b`                                            |
-| `npm test`             | Run Vitest once                                         |
-| `npm run e2e`          | Run Playwright (builds and serves the app on port 4173) |
-| `npm run format`       | Format everything with Prettier                         |
-| `npm run format:check` | Check formatting with Prettier                          |
-| `npm run prepare`      | Install Husky git hooks (runs automatically on install) |
+| Script                  | What it does                                            |
+| ----------------------- | ------------------------------------------------------- |
+| `npm run dev`           | Start the Vite dev server                               |
+| `npm run build`         | Typecheck (`tsc -b`) and produce a production build     |
+| `npm run preview`       | Serve the production build                              |
+| `npm run lint`          | Run ESLint                                              |
+| `npm run typecheck`     | Run `tsc -b`                                            |
+| `npm test`              | Run Vitest once                                         |
+| `npm run test:coverage` | Run Vitest with v8 coverage and thresholds              |
+| `npm run e2e`           | Run Playwright (builds and serves the app on port 4173) |
+| `npm run format`        | Format everything with Prettier                         |
+| `npm run format:check`  | Check formatting with Prettier                          |
+| `npm run prepare`       | Install Husky git hooks (runs automatically on install) |
 
 ## Project structure
 
@@ -84,8 +85,8 @@ The repository is set up so that AI agents can work on it autonomously while gua
 - Never use `--no-verify` or otherwise skip hooks.
 - Never force push.
 - Follow the Git workflow section: every task gets a new branch from an updated `main` (`feat/...`, `fix/...`, `docs/...`, `chore/...`), never commit on another task's branch, never push to `main`, and open a pull request.
-- Never weaken or delete a test to make it pass; fix the cause.
-- Run `npm run lint`, `npm run typecheck`, `npm test` and `npm run format:check` before committing code changes.
+- Never weaken or delete a test to make it pass; fix the cause. ESLint fails on skipped, focused, todo and disabled tests, and coverage thresholds in `vite.config.ts` may only go up.
+- Run `npm run lint`, `npm run typecheck`, `npm run test:coverage` and `npm run format:check` before committing code changes.
 
 ### SPEC.md
 
@@ -109,7 +110,7 @@ Registered in `.claude/settings.json`, `.claude/hooks/quality-gate.sh` runs when
 
 `.github/workflows/ci.yml` runs on pushes to `main` and on pull requests, using Node 24. It has two jobs:
 
-- `checks`: `npm ci`, then `npm run lint`, `npm run typecheck` and `npm test`.
+- `checks`: `npm ci`, then `npm run lint`, `npm run typecheck` and `npm run test:coverage` (uploads `coverage` as an artifact).
 - `e2e`: `npm ci`, installs Chromium with Playwright, then `npm run e2e`. On failure it uploads `test-results` as the `playwright-results` artifact.
 
 ### Branch protection
