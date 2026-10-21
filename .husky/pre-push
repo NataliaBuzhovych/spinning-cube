@@ -1,1 +1,6 @@
-npm run lint && npm run typecheck && npm run test:coverage
+if [ -f .claude/quality-gate-failure.md ]; then
+  echo "Push blocked: .claude/quality-gate-failure.md exists (the stop hook gave up). Fix the failures, then let the stop hook pass to clear it." >&2
+  exit 1
+fi
+npm run lint && npm run typecheck && npm run test:coverage && npm run format:check
+npm run e2e
