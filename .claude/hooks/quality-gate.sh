@@ -3,8 +3,8 @@
 # check before Claude finishes. On failure, print errors to stderr and exit 2 so
 # Claude keeps working.
 # After MAX_ATTEMPTS consecutive failures, write the last output to
-# .claude/quality-gate-failure.md (the failure marker), say so on stderr and let
-# Claude stop. The marker is deleted on the next success.
+# .claude/quality-gate-failure.md (the failure marker), say so on stderr, show it
+# to the human via continue:false/stopReason JSON on stdout and let Claude stop. The marker is deleted on the next success.
 
 MAX_ATTEMPTS=5
 cd "${CLAUDE_PROJECT_DIR:-$(dirname "$0")/../..}" || exit 0
@@ -35,7 +35,10 @@ if [ "$attempts" -ge "$MAX_ATTEMPTS" ]; then
   {
     printf '# Quality gate failure\n\nFailed %s times. Last output:\n\n```\n%s\n```\n' "$MAX_ATTEMPTS" "$report"
   } > "$MARKER"
-  echo "Quality gate not passed: work is incomplete, do not open a PR" >&2
+  MSG="Quality gate not passed: work is incomplete, do not open a PR"
+  echo "$MSG" >&2
+  # continue:false + stopReason shows the message to the human (stdout must be only this JSON)
+  printf '{"continue": false, "stopReason": "%s"}\n' "$MSG"
   exit 0
 fi
 

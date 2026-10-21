@@ -108,7 +108,7 @@ On the 5th failed attempt it gives up and lets Claude stop, but not silently: se
 
 ### Failure marker
 
-When the Stop hook gives up it writes the last output to `.claude/quality-gate-failure.md` (gitignored) and prints "Quality gate not passed: work is incomplete, do not open a PR" to stderr. The file is deleted the next time the hook passes. While it exists:
+When the Stop hook gives up it writes the last output to `.claude/quality-gate-failure.md` (gitignored) and prints "Quality gate not passed: work is incomplete, do not open a PR" to stderr. It also prints `{"continue": false, "stopReason": "Quality gate not passed: work is incomplete, do not open a PR"}` as JSON on stdout (exit code 0), which Claude Code shows to the human as the reason it stopped. The file is deleted the next time the hook passes. While it exists:
 
 - `.husky/pre-push` fails.
 - The PreToolUse hook `.claude/hooks/block-push-on-failure.sh` (registered for the `Bash` tool in `.claude/settings.json`) blocks `git push` from Claude Code with exit code 2.

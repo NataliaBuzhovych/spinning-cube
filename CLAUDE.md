@@ -40,7 +40,7 @@ See [SPEC.md](SPEC.md) for what to build.
 
 Layers: the Stop hook is the fast loop, `pre-push` is the full local check, CI is authoritative.
 
-- Claude Code Stop hook (`.claude/hooks/quality-gate.sh`) runs the fast gates: lint, typecheck, `test:coverage` and `format:check`. On failure it prints to stderr and exits 2. On the 5th failed attempt it writes the last output to `.claude/quality-gate-failure.md` (gitignored), prints "Quality gate not passed: work is incomplete, do not open a PR" to stderr and lets Claude stop. The file is deleted when the gate next passes.
+- Claude Code Stop hook (`.claude/hooks/quality-gate.sh`) runs the fast gates: lint, typecheck, `test:coverage` and `format:check`. On failure it prints to stderr and exits 2. On the 5th failed attempt it writes the last output to `.claude/quality-gate-failure.md` (gitignored), prints "Quality gate not passed: work is incomplete, do not open a PR" to stderr and as `continue: false` / `stopReason` JSON so the human sees it, and lets Claude stop. The file is deleted when the gate next passes.
 - Husky `pre-commit` hook (`.husky/pre-commit`) blocks commits on `main` and prints "Create a feature branch first".
 - Husky `pre-push` hook is the full local check: it fails if `.claude/quality-gate-failure.md` exists, runs the same four fast gates as the Stop hook, then `npm run e2e` (too slow for the Stop hook).
 - PreToolUse hook (`.claude/hooks/block-push-on-failure.sh`, registered in `.claude/settings.json`) blocks `git push` while `.claude/quality-gate-failure.md` exists. It guards against accidental skipping, not deliberate bypass.
@@ -64,5 +64,5 @@ Layers: the Stop hook is the fast loop, `pre-push` is the full local check, CI i
   - ESLint fails on `.skip`, `.only`, `.todo`, `.fixme`, `skipIf` and runtime `skip()` on `it`/`test`/`describe`/`test.describe` (`eslint.config.js`, locked in by `src/lint-rules.test.ts`).
   - Test files cannot bypass those rules: `eslint-disable` comments for `vitest/*`, `@vitest/*`, `playwright/*` and `no-restricted-syntax` are errors, unlimited `eslint-disable` is an error, inline config is ignored, and unused disable directives are errors.
   - Coverage excludes `src/App.tsx` and `src/main.tsx` (covered by e2e). Thresholds in `vite.config.ts` are set from measured coverage and enforced by `npm run test:coverage`. Never lower them; raise them when coverage improves. Nothing in code stops you editing the numbers down, so this is a rule you follow and a reviewer checks.
-- If `.claude/quality-gate-failure.md` exists, the quality gate has not passed: report the failure to the user, do not open a PR, push, or claim the task is done.
+- If `.claude/quality-gate-failure.md` exists, the quality gate has not passed ("Quality gate not passed: work is incomplete, do not open a PR"): report the failure to the user, do not open a PR, push, or claim the task is done.
 - Run `npm run lint`, `npm run typecheck`, `npm run test:coverage` and `npm run format:check` before committing code changes.

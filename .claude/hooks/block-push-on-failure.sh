@@ -12,7 +12,7 @@ MARKER=.claude/quality-gate-failure.md
 command=$(node -e 'let s="";process.stdin.on("data",d=>s+=d).on("end",()=>{try{process.stdout.write(JSON.parse(s).tool_input?.command??"")}catch{}})')
 
 if [[ "$command" =~ (^|[^[:alnum:]_-])git([[:space:]]+-[^[:space:]]+([[:space:]]+[^-[:space:]][^[:space:]]*)?)*[[:space:]]+push([[:space:]]|$) ]]; then
-  echo "Blocked: $MARKER exists, so the quality gate has not passed. Work is incomplete; fix the failures (see the file) instead of pushing." >&2
+  echo "Blocked: $MARKER exists. Quality gate not passed: work is incomplete, do not open a PR; fix the failures (see the file) instead of pushing." >&2
   exit 2
 fi
 exit 0
