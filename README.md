@@ -67,7 +67,7 @@ The first e2e run needs the Chromium browser: `npx playwright install chromium`.
 ├── CLAUDE.md                   # Instructions for AI agents
 ├── .claude/
 │   ├── settings.json           # Hook registration and permission deny rules
-│   └── hooks/quality-gate.sh   # Stop hook
+│   └── hooks/                  # quality-gate.sh (Stop), block-push-on-failure.sh (PreToolUse)
 ├── .husky/pre-commit           # Git pre-commit hook
 ├── .husky/pre-push             # Git pre-push hook
 └── .github/workflows/ci.yml    # CI workflow
@@ -92,11 +92,29 @@ The repository is set up so that AI agents can work on it autonomously while gua
 
 [SPEC.md](SPEC.md) defines what to build: one continuously rotating cube, centered, in a canvas that fills the viewport and resizes with the window, with drag-to-orbit via drei's `OrbitControls`. Multiple objects, textures, UI overlays and physics are out of scope.
 
+### Quality gate layers
+
+- **Stop hook** = fast loop.
+- **`pre-push`** = full local check.
+- **CI** = authoritative.
+
 ### Stop hook
 
-Registered in `.claude/settings.json`, `.claude/hooks/quality-gate.sh` runs when Claude Code tries to finish. It runs `npm run lint`, `npm run typecheck`, `npm run test:coverage` and `npm run format:check`. If any fail, it prints the output to stderr and exits with code 2, so Claude keeps working to fix them. After 5 failed attempts it gives up and lets Claude stop.
+Registered in `.claude/settings.json`, `.claude/hooks/quality-gate.sh` runs when Claude Code tries to finish. It runs `npm run lint`, `npm run typecheck`, `npm run test:coverage` and `npm run format:check`. If any fail, it prints the output to stderr and exits with code 2, so Claude keeps working to fix them. E2E is not run here because it is too slow.
+
+On the 5th failed attempt it gives up and lets Claude stop, but not silently: see [Failure marker](#failure-marker).
 
 `.claude/settings.json` also denies `git push --force`, `-f`, `--force-with-lease` and any git command using `--no-verify`.
+
+### Failure marker
+
+When the Stop hook gives up it writes the last output to `.claude/quality-gate-failure.md` (gitignored) and prints "Quality gate not passed: work is incomplete, do not open a PR" to stderr. The file is deleted the next time the hook passes. While it exists:
+
+- `.husky/pre-push` fails.
+- The PreToolUse hook `.claude/hooks/block-push-on-failure.sh` (registered for the `Bash` tool in `.claude/settings.json`) blocks `git push` from Claude Code with exit code 2.
+- CLAUDE.md tells the agent to report the failure and not claim the task is done.
+
+Limits: this is a guard against accidental skipping, not against deliberate bypass. Deleting the file, pushing from a terminal with hooks disabled, or a command shape the hook's pattern misses all get around it. CI and branch protection stay the final check.
 
 ### Husky pre-commit hook
 
@@ -104,7 +122,7 @@ Registered in `.claude/settings.json`, `.claude/hooks/quality-gate.sh` runs when
 
 ### Husky pre-push hook
 
-`.husky/pre-push` runs `npm run lint && npm run typecheck && npm run test:coverage && npm run format:check` before every `git push`, the same checks as the Stop hook. Husky is installed through the `prepare` script, so `npm install` sets it up.
+`.husky/pre-push` is the full local check. It fails if the failure marker exists, then runs `npm run lint && npm run typecheck && npm run test:coverage && npm run format:check` (the same gates as the Stop hook) and finally `npm run e2e`. Husky is installed through the `prepare` script, so `npm install` sets it up.
 
 ### CI
 
@@ -123,4 +141,4 @@ Not every rule here is enforced by code:
 
 - The lint rules against skipped, focused and todo tests, and the ban on disabling them with comments, are enforced by ESLint and checked in CI.
 - "Coverage thresholds only go up" is enforced by **review, not by code**. The thresholds in `vite.config.ts` make `npm run test:coverage` fail when coverage drops below them, but nothing stops someone from editing the numbers down in the same change. A human reviewing the PR is the final check: look at any diff that touches `vite.config.ts` or `eslint.config.js`.
-- The local gates (Stop hook, Husky `pre-commit` and `pre-push`) are a convenience for fast feedback. A human can bypass them, for example with `--no-verify` or by editing the hooks. The authoritative checks are CI plus branch protection: the `checks` and `e2e` jobs must pass before a PR can merge.
+- The local gates (Stop hook, PreToolUse hook, Husky `pre-commit` and `pre-push`) are a convenience for fast feedback. A human can bypass them, for example with `--no-verify` or by editing the hooks. The authoritative checks are CI plus branch protection: the `checks` and `e2e` jobs must pass before a PR can merge.
