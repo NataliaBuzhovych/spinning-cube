@@ -10,7 +10,7 @@ COUNTER=.claude/.quality-gate-failures
 attempts=$(cat "$COUNTER" 2>/dev/null || echo 0)
 
 failed=0
-for script in lint typecheck test; do
+for script in lint typecheck test:coverage; do
   if ! output=$(npm run --silent "$script" 2>&1); then
     failed=1
     printf '== npm run %s failed ==\n%s\n\n' "$script" "$output" >&2
