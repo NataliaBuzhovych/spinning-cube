@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Claude Code Stop hook: run lint, typecheck and tests before Claude finishes.
+# Claude Code Stop hook: run lint, typecheck, tests with coverage and the format check before Claude finishes.
 # On failure, print errors to stderr and exit 2 so Claude keeps working.
 # After MAX_ATTEMPTS consecutive failures, give up and let Claude stop.
 
@@ -10,7 +10,7 @@ COUNTER=.claude/.quality-gate-failures
 attempts=$(cat "$COUNTER" 2>/dev/null || echo 0)
 
 failed=0
-for script in lint typecheck test:coverage; do
+for script in lint typecheck test:coverage format:check; do
   if ! output=$(npm run --silent "$script" 2>&1); then
     failed=1
     printf '== npm run %s failed ==\n%s\n\n' "$script" "$output" >&2

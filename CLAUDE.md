@@ -38,7 +38,7 @@ See [SPEC.md](SPEC.md) for what to build.
 
 ## Quality gates
 
-- Claude Code Stop hook (`.claude/hooks/quality-gate.sh`) runs lint, typecheck and tests with coverage; on failure it prints to stderr and exits 2, giving up after 5 failed attempts.
+- Claude Code Stop hook (`.claude/hooks/quality-gate.sh`) runs lint, typecheck, tests with coverage and the format check; on failure it prints to stderr and exits 2, giving up after 5 failed attempts.
 - Husky `pre-commit` hook (`.husky/pre-commit`) blocks commits on `main` and prints "Create a feature branch first".
 - Husky `pre-push` hook runs the same checks.
 - CI (`.github/workflows/ci.yml`) has two jobs, `checks` (lint, typecheck, unit tests with coverage) and `e2e` (Playwright). Both are required status checks in branch protection before a PR can be merged.

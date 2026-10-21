@@ -94,7 +94,7 @@ The repository is set up so that AI agents can work on it autonomously while gua
 
 ### Stop hook
 
-Registered in `.claude/settings.json`, `.claude/hooks/quality-gate.sh` runs when Claude Code tries to finish. It runs `npm run lint`, `npm run typecheck` and `npm run test:coverage`. If any fail, it prints the output to stderr and exits with code 2, so Claude keeps working to fix them. After 5 failed attempts it gives up and lets Claude stop.
+Registered in `.claude/settings.json`, `.claude/hooks/quality-gate.sh` runs when Claude Code tries to finish. It runs `npm run lint`, `npm run typecheck`, `npm run test:coverage` and `npm run format:check`. If any fail, it prints the output to stderr and exits with code 2, so Claude keeps working to fix them. After 5 failed attempts it gives up and lets Claude stop.
 
 `.claude/settings.json` also denies `git push --force`, `-f`, `--force-with-lease` and any git command using `--no-verify`.
 
@@ -104,7 +104,7 @@ Registered in `.claude/settings.json`, `.claude/hooks/quality-gate.sh` runs when
 
 ### Husky pre-push hook
 
-`.husky/pre-push` runs `npm run lint && npm run typecheck && npm run test:coverage` before every `git push`, the same checks as the Stop hook. Husky is installed through the `prepare` script, so `npm install` sets it up.
+`.husky/pre-push` runs `npm run lint && npm run typecheck && npm run test:coverage && npm run format:check` before every `git push`, the same checks as the Stop hook. Husky is installed through the `prepare` script, so `npm install` sets it up.
 
 ### CI
 
