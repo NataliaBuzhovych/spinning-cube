@@ -19,7 +19,7 @@ See [SPEC.md](SPEC.md) for what to build.
 - `src/Cube.tsx` — rotating cube mesh
 - `e2e/` — Playwright specs; `.github/workflows/ci.yml` — CI
 - `src/index.css` — global styles
-- `src/*.test.tsx` — tests, next to the code; `src/test-setup.ts` loads jest-dom
+- `src/*.test.{ts,tsx}` — tests, next to the code (`src/lint-rules.test.ts` checks the test-integrity lint rules); `src/test-setup.ts` loads jest-dom
 - `public/` — static assets
 - `SPEC.md` — product spec
 
@@ -38,7 +38,7 @@ See [SPEC.md](SPEC.md) for what to build.
 
 ## Quality gates
 
-- Claude Code Stop hook (`.claude/hooks/quality-gate.sh`) runs lint, typecheck and tests; on failure it prints to stderr and exits 2, giving up after 5 failed attempts.
+- Claude Code Stop hook (`.claude/hooks/quality-gate.sh`) runs lint, typecheck and tests with coverage; on failure it prints to stderr and exits 2, giving up after 5 failed attempts.
 - Husky `pre-commit` hook (`.husky/pre-commit`) blocks commits on `main` and prints "Create a feature branch first".
 - Husky `pre-push` hook runs the same checks.
 - CI (`.github/workflows/ci.yml`) has two jobs, `checks` (lint, typecheck, unit tests with coverage) and `e2e` (Playwright). Both are required status checks in branch protection before a PR can be merged.
@@ -57,7 +57,8 @@ See [SPEC.md](SPEC.md) for what to build.
 - Small, focused commits using Conventional Commits (`feat:`, `fix:`, `chore:`, `docs:`, `refactor:`...).
 - Never use `--no-verify` (or otherwise skip hooks).
 - Never force push.
-- Never weaken or delete a test to make it pass; fix the cause. This is machine-enforced:
-  - ESLint fails on `.skip`, `.only`, `.todo`, `.fixme`, `skipIf` and runtime `skip()` in unit and e2e tests (`eslint.config.js`).
-  - Coverage thresholds in `vite.config.ts` are set from actual coverage. Raise them when coverage improves; never lower them.
+- Never weaken or delete a test to make it pass; fix the cause. Partly machine-enforced:
+  - ESLint fails on `.skip`, `.only`, `.todo`, `.fixme`, `skipIf` and runtime `skip()` on `it`/`test`/`describe`/`test.describe` (`eslint.config.js`, locked in by `src/lint-rules.test.ts`).
+  - Test files cannot bypass those rules: `eslint-disable` comments for `vitest/*`, `@vitest/*`, `playwright/*` and `no-restricted-syntax` are errors, unlimited `eslint-disable` is an error, inline config is ignored, and unused disable directives are errors.
+  - Coverage excludes `src/App.tsx` and `src/main.tsx` (covered by e2e). Thresholds in `vite.config.ts` are set from measured coverage and enforced by `npm run test:coverage`. Never lower them; raise them when coverage improves. Nothing in code stops you editing the numbers down, so this is a rule you follow and a reviewer checks.
 - Run `npm run lint`, `npm run typecheck`, `npm run test:coverage` and `npm run format:check` before committing code changes.
