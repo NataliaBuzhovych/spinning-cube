@@ -1,4 +1,5 @@
 import js from '@eslint/js'
+import eslintComments from '@eslint-community/eslint-plugin-eslint-comments'
 import vitest from '@vitest/eslint-plugin'
 import prettier from 'eslint-config-prettier'
 import reactHooks from 'eslint-plugin-react-hooks'
@@ -8,6 +9,7 @@ import tseslint from 'typescript-eslint'
 
 export default tseslint.config(
   { ignores: ['dist', 'coverage'] },
+  { linterOptions: { reportUnusedDisableDirectives: 'error' } },
   js.configs.recommended,
   tseslint.configs.recommended,
   reactHooks.configs.flat.recommended,
@@ -49,6 +51,23 @@ export default tseslint.config(
           selector: "MemberExpression[property.name='fixme']",
           message: '.fixme disables a test and is not allowed.',
         },
+      ],
+    },
+  },
+  {
+    // The test-integrity rules cannot be switched off with comments.
+    files: ['src/**/*.test.{ts,tsx}', 'e2e/**/*.ts'],
+    linterOptions: { noInlineConfig: true },
+    plugins: { '@eslint-community/eslint-comments': eslintComments },
+    rules: {
+      '@eslint-community/eslint-comments/no-unlimited-disable': 'error',
+      '@eslint-community/eslint-comments/no-restricted-disable': [
+        'error',
+        '@vitest/*',
+        'vitest/*',
+        'playwright/*',
+        'no-restricted-syntax',
+        '@eslint-community/*',
       ],
     },
   },
