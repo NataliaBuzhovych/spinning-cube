@@ -1,4 +1,4 @@
-import { expect, test, type Page } from '@playwright/test'
+import { expect, test, type Locator, type Page } from '@playwright/test'
 
 // Loads the app on a fake clock that is paused, so animation frames only
 // advance via page.clock.runFor() and each screenshot is at a known time.
@@ -9,6 +9,16 @@ async function openWithFrozenClock(page: Page) {
   await expect(canvas).toBeVisible()
   await page.clock.pauseAt(1000)
   return canvas
+}
+
+async function dragAcross(page: Page, canvas: Locator) {
+  const box = (await canvas.boundingBox())!
+  const x = box.x + box.width / 2
+  const y = box.y + box.height / 2
+  await page.mouse.move(x, y)
+  await page.mouse.down()
+  await page.mouse.move(x + 150, y + 80, { steps: 10 })
+  await page.mouse.up()
 }
 
 test('canvas fills the viewport', async ({ page }) => {
@@ -61,21 +71,15 @@ test('draws a rotating cube', async ({ page }) => {
 test('dragging the mouse orbits the camera', async ({ browser }) => {
   // Two pages run the identical clock schedule, so the cube is at the same
   // rotation in both; only one of them is dragged.
-  const frameAfter = async (drag: boolean) => {
+  const frameAfter = async (
+    interact: (page: Page, canvas: Locator) => Promise<void>,
+  ) => {
     const context = await browser.newContext()
     const page = await context.newPage()
     const canvas = await openWithFrozenClock(page)
     await page.clock.runFor(500)
 
-    if (drag) {
-      const box = (await canvas.boundingBox())!
-      const x = box.x + box.width / 2
-      const y = box.y + box.height / 2
-      await page.mouse.move(x, y)
-      await page.mouse.down()
-      await page.mouse.move(x + 150, y + 80, { steps: 10 })
-      await page.mouse.up()
-    }
+    await interact(page, canvas)
 
     await page.clock.runFor(500)
     const frame = await canvas.screenshot()
@@ -83,7 +87,7 @@ test('dragging the mouse orbits the camera', async ({ browser }) => {
     return frame
   }
 
-  const still = await frameAfter(false)
-  const dragged = await frameAfter(true)
+  const still = await frameAfter(async () => {})
+  const dragged = await frameAfter(dragAcross)
   expect(dragged.equals(still)).toBe(false)
 })
