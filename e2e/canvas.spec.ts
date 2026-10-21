@@ -1,6 +1,17 @@
-import { expect, test } from '@playwright/test'
+import { expect, test, type Page } from '@playwright/test'
 
-test('renders a full-screen canvas', async ({ page }) => {
+// Loads the app on a fake clock that is paused, so animation frames only
+// advance via page.clock.runFor() and each screenshot is at a known time.
+async function openWithFrozenClock(page: Page) {
+  await page.clock.install({ time: 0 })
+  await page.goto('/')
+  const canvas = page.locator('canvas')
+  await expect(canvas).toBeVisible()
+  await page.clock.pauseAt(1000)
+  return canvas
+}
+
+test('canvas fills the viewport', async ({ page }) => {
   await page.goto('/')
   const canvas = page.locator('canvas')
   await expect(canvas).toBeVisible()
@@ -15,14 +26,64 @@ test('renders a full-screen canvas', async ({ page }) => {
     .toBe(viewport.height)
 })
 
-test('draws a rotating cube', async ({ page }) => {
+test('canvas resizes with the window', async ({ page }) => {
   await page.goto('/')
   const canvas = page.locator('canvas')
   await expect(canvas).toBeVisible()
 
-  // A blank canvas would produce identical frames; a spinning cube does not.
+  for (const size of [
+    { width: 640, height: 480 },
+    { width: 1000, height: 700 },
+  ]) {
+    await page.setViewportSize(size)
+    await expect
+      .poll(async () => {
+        const box = await canvas.boundingBox()
+        return { width: box?.width, height: box?.height }
+      })
+      .toEqual(size)
+  }
+})
+
+test('draws a rotating cube', async ({ page }) => {
+  // Fake clock so each sample is taken at a known point in time.
+  const canvas = await openWithFrozenClock(page)
+  await page.clock.runFor(500)
   const first = await canvas.screenshot()
-  await expect
-    .poll(async () => (await canvas.screenshot()).equals(first))
-    .toBe(false)
+  // Time standing still must give an identical frame...
+  expect((await canvas.screenshot()).equals(first)).toBe(true)
+
+  // ...so any difference after time passes comes from the cube rotating.
+  await page.clock.runFor(1000)
+  expect((await canvas.screenshot()).equals(first)).toBe(false)
+})
+
+test('dragging the mouse orbits the camera', async ({ browser }) => {
+  // Two pages run the identical clock schedule, so the cube is at the same
+  // rotation in both; only one of them is dragged.
+  const frameAfter = async (drag: boolean) => {
+    const context = await browser.newContext()
+    const page = await context.newPage()
+    const canvas = await openWithFrozenClock(page)
+    await page.clock.runFor(500)
+
+    if (drag) {
+      const box = (await canvas.boundingBox())!
+      const x = box.x + box.width / 2
+      const y = box.y + box.height / 2
+      await page.mouse.move(x, y)
+      await page.mouse.down()
+      await page.mouse.move(x + 150, y + 80, { steps: 10 })
+      await page.mouse.up()
+    }
+
+    await page.clock.runFor(500)
+    const frame = await canvas.screenshot()
+    await context.close()
+    return frame
+  }
+
+  const still = await frameAfter(false)
+  const dragged = await frameAfter(true)
+  expect(dragged.equals(still)).toBe(false)
 })
