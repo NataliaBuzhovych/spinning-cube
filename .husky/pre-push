@@ -3,3 +3,4 @@ if [ -f .claude/quality-gate-failure.md ]; then
   exit 1
 fi
 npm run lint && npm run typecheck && npm run test:coverage && npm run format:check
+npm run e2e
