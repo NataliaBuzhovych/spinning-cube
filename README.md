@@ -2,6 +2,8 @@
 
 A single rotating cube rendered in a full-screen canvas, built with React Three Fiber and drei. Drag with the mouse to orbit the view (`OrbitControls`). See [openspec/specs/](openspec/specs/rotating-cube/spec.md) for the full spec.
 
+**Live demo:** https://spinning-cube-git-chore-adopt-openspec-natalia-buzhovych.vercel.app/
+
 **All code in this repository is written by AI agents.**
 
 ## Stack
