@@ -1,6 +1,6 @@
 # Spinning Cube
 
-See [SPEC.md](SPEC.md) for what to build.
+The spec lives in `openspec/specs/` (see [SPEC.md](SPEC.md) for the pointer). Read it for what to build.
 
 ## Stack
 
@@ -21,7 +21,9 @@ See [SPEC.md](SPEC.md) for what to build.
 - `src/index.css` — global styles
 - `src/*.test.{ts,tsx}` — tests, next to the code (`src/lint-rules.test.ts` checks the test-integrity lint rules); `src/test-setup.ts` loads jest-dom
 - `public/` — static assets
-- `SPEC.md` — product spec
+- `openspec/` — OpenSpec: `specs/` is the current spec, `changes/` holds proposed and archived changes, `config.yaml` is its config
+- `.claude/skills/openspec-*`, `.claude/commands/opsx/` — OpenSpec skills and commands installed by `openspec init`
+- `SPEC.md` — pointer to `openspec/`
 
 ## Commands
 
@@ -46,6 +48,18 @@ Layers: the Stop hook is the fast loop, `pre-push` is the full local check, CI i
 - PreToolUse hook (`.claude/hooks/block-push-on-failure.sh`, registered in `.claude/settings.json`) blocks `git push` while `.claude/quality-gate-failure.md` exists. It guards against accidental skipping, not deliberate bypass.
 - CI (`.github/workflows/ci.yml`) is authoritative. It has two jobs, `checks` (lint, typecheck, unit tests with coverage) and `e2e` (Playwright). Both are required status checks in branch protection before a PR can be merged.
 - `git push --force`/`-f` and `--no-verify` are denied in `.claude/settings.json`.
+
+## OpenSpec workflow
+
+Every behavior change goes through OpenSpec, using the commands installed by `openspec init` (`.claude/commands/opsx/`):
+
+1. `/opsx:propose "<idea>"` — creates `openspec/changes/<name>/` with `proposal.md`, delta specs, `design.md` and `tasks.md`.
+2. `/opsx:apply` — implements the tasks.
+3. `/opsx:archive` — archives the finished change and merges its delta specs into `openspec/specs/`.
+
+Also installed: `/opsx:explore` (investigate before proposing), `/opsx:sync` and `/opsx:update`.
+
+Never change code before the spec change is written. Do not edit `openspec/specs/` directly for a behavior change; it is updated by archiving. Install the CLI with `npm install -g @fission-ai/openspec@latest`.
 
 ## Git workflow
 
