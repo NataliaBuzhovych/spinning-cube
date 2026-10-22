@@ -1,6 +1,6 @@
 # Spinning Cube
 
-A single rotating cube rendered in a full-screen canvas, built with React Three Fiber and drei. Drag with the mouse to orbit the view (`OrbitControls`). See [SPEC.md](SPEC.md) for the full spec.
+A single rotating cube rendered in a full-screen canvas, built with React Three Fiber and drei. Drag with the mouse to orbit the view (`OrbitControls`). See [openspec/specs/](openspec/specs/rotating-cube/spec.md) for the full spec.
 
 **All code in this repository is written by AI agents.**
 
@@ -63,11 +63,14 @@ The first e2e run needs the Chromium browser: `npx playwright install chromium`.
 ├── eslint.config.js            # ESLint config
 ├── .prettierrc.json            # Prettier config
 ├── tsconfig*.json              # TypeScript configs
-├── SPEC.md                     # Product spec
+├── openspec/                   # OpenSpec: specs/ (current spec), changes/, config.yaml
+├── SPEC.md                     # Pointer to openspec/
 ├── CLAUDE.md                   # Instructions for AI agents
 ├── .claude/
 │   ├── settings.json           # Hook registration and permission deny rules
-│   └── hooks/                  # quality-gate.sh (Stop), block-push-on-failure.sh (PreToolUse)
+│   ├── hooks/                  # quality-gate.sh (Stop), block-push-on-failure.sh (PreToolUse)
+│   ├── skills/                 # openspec-* skills
+│   └── commands/opsx/          # /opsx:* commands
 ├── .husky/pre-commit           # Git pre-commit hook
 ├── .husky/pre-push             # Git pre-push hook
 └── .github/workflows/ci.yml    # CI workflow
@@ -88,9 +91,23 @@ The repository is set up so that AI agents can work on it autonomously while gua
 - Never weaken or delete a test to make it pass; fix the cause. ESLint fails on skipped, focused, todo and disabled tests (and on `eslint-disable` comments that try to bypass those rules), and coverage thresholds in `vite.config.ts` may only go up. See [Trust model](#trust-model).
 - Run `npm run lint`, `npm run typecheck`, `npm run test:coverage` and `npm run format:check` before committing code changes.
 
-### SPEC.md
+### OpenSpec
 
-[SPEC.md](SPEC.md) defines what to build: one continuously rotating cube, centered, in a canvas that fills the viewport and resizes with the window, with drag-to-orbit via drei's `OrbitControls`. Multiple objects, textures, UI overlays and physics are out of scope.
+[OpenSpec](https://openspec.dev) drives spec-driven development. The current spec is in [openspec/specs/](openspec/specs/rotating-cube/spec.md): one cube, centered and continuously rotating, in a canvas that fills the viewport and resizes with the window, with drag-to-orbit via drei's `OrbitControls`. [SPEC.md](SPEC.md) only points there.
+
+Every behavior change follows the workflow, using the Claude Code commands installed by `openspec init`:
+
+1. `/opsx:propose "<idea>"` writes a change under `openspec/changes/<name>/` (proposal, delta specs, design, tasks).
+2. `/opsx:apply` implements the tasks.
+3. `/opsx:archive` archives the change and merges its delta specs into `openspec/specs/`.
+
+`/opsx:explore` helps investigate before proposing. Code is never changed before the spec change is written.
+
+Install the CLI (needed for `openspec init` and other `openspec` commands):
+
+```bash
+npm install -g @fission-ai/openspec@latest
+```
 
 ### Quality gate layers
 
