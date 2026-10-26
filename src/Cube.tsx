@@ -4,11 +4,15 @@ import type { Mesh } from 'three'
 
 export const ROTATION_SPEED = 0.5
 
-export default function Cube() {
+type CubeProps = {
+  paused?: boolean
+}
+
+export default function Cube({ paused = false }: CubeProps) {
   const mesh = useRef<Mesh>(null)
 
   useFrame((_, delta) => {
-    if (!mesh.current) return
+    if (!mesh.current || paused) return
     mesh.current.rotation.x += delta * ROTATION_SPEED
     mesh.current.rotation.y += delta * ROTATION_SPEED
   })

@@ -91,3 +91,67 @@ test('dragging the mouse orbits the camera', async ({ browser }) => {
   const dragged = await frameAfter(dragAcross)
   expect(dragged.equals(still)).toBe(false)
 })
+
+test.describe('pause control', () => {
+  const pauseButton = (page: Page) =>
+    page.getByRole('button', { name: /^(Pause|Resume)$/ })
+
+  test('button label changes after a click and after Space', async ({
+    page,
+  }) => {
+    await openWithFrozenClock(page)
+    await expect(pauseButton(page)).toHaveText('Pause')
+
+    await pauseButton(page).click()
+    await expect(pauseButton(page)).toHaveText('Resume')
+    await pauseButton(page).click()
+    await expect(pauseButton(page)).toHaveText('Pause')
+
+    await page.keyboard.press('Space')
+    await expect(pauseButton(page)).toHaveText('Resume')
+    await page.keyboard.press('Space')
+    await expect(pauseButton(page)).toHaveText('Pause')
+  })
+
+  test('Space toggles once with the button focused', async ({ page }) => {
+    await openWithFrozenClock(page)
+    await pauseButton(page).focus()
+
+    await page.keyboard.press('Space')
+
+    await expect(pauseButton(page)).toHaveText('Resume')
+  })
+
+  test('the cube holds still while paused and resumes after', async ({
+    page,
+  }) => {
+    const canvas = await openWithFrozenClock(page)
+    await page.clock.runFor(500)
+    await pauseButton(page).click()
+    await page.clock.runFor(100) // let the pause reach a rendered frame
+    const frozen = await canvas.screenshot()
+
+    await page.clock.runFor(1000)
+    expect((await canvas.screenshot()).equals(frozen)).toBe(true)
+
+    await pauseButton(page).click()
+    await page.clock.runFor(1000)
+    expect((await canvas.screenshot()).equals(frozen)).toBe(false)
+  })
+
+  test('dragging while paused orbits the view and keeps it paused', async ({
+    page,
+  }) => {
+    const canvas = await openWithFrozenClock(page)
+    await page.clock.runFor(500)
+    await pauseButton(page).click()
+    await page.clock.runFor(100)
+    const before = await canvas.screenshot()
+
+    await dragAcross(page, canvas)
+    await page.clock.runFor(500)
+
+    expect((await canvas.screenshot()).equals(before)).toBe(false)
+    await expect(pauseButton(page)).toHaveText('Resume')
+  })
+})
