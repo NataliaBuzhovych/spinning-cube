@@ -1,8 +1,8 @@
 # Spinning Cube
 
-A single rotating cube rendered in a full-screen canvas, built with React Three Fiber and drei. Drag with the mouse to orbit the view (`OrbitControls`). See [openspec/specs/](openspec/specs/rotating-cube/spec.md) for the full spec.
+A single rotating cube rendered in a full-screen canvas, built with React Three Fiber and drei. Drag with the mouse to orbit the view (`OrbitControls`). A Pause/Resume button (or the Space key) stops and restarts the cube's rotation; dragging still orbits the view while paused. See [openspec/specs/](openspec/specs/rotating-cube/spec.md) for the full spec.
 
-**Live demo:** https://spinning-cube-git-chore-adopt-openspec-natalia-buzhovych.vercel.app/
+**Live demo:** https://spinning-cube-lac.vercel.app/
 
 **All code in this repository is written by AI agents.**
 
@@ -53,10 +53,14 @@ The first e2e run needs the Chromium browser: `npx playwright install chromium`.
 ├── index.html                  # Vite entry
 ├── src/
 │   ├── main.tsx                # React root
-│   ├── App.tsx                 # Full-screen Canvas, lights, OrbitControls
-│   ├── Cube.tsx                # Rotating cube mesh
-│   ├── Cube.test.tsx           # Unit test (tests live next to the code)
-│   ├── test-setup.ts           # Loads jest-dom
+│   ├── App.tsx                 # Full-screen Canvas, lights, OrbitControls, paused state, Space shortcut
+│   ├── App.test.tsx            # Unit tests (tests live next to the code)
+│   ├── Cube.tsx                # Rotating cube mesh (skips rotation while paused)
+│   ├── Cube.test.tsx           # Unit tests
+│   ├── PauseButton.tsx         # Pause/Resume button overlay
+│   ├── PauseButton.test.tsx    # Unit tests
+│   ├── lint-rules.test.ts      # Checks the test-integrity lint rules
+│   ├── test-setup.ts           # Loads jest-dom, cleans up after each test
 │   └── index.css               # Global styles
 ├── e2e/canvas.spec.ts          # Playwright specs
 ├── public/favicon.svg          # Static assets
@@ -95,7 +99,7 @@ The repository is set up so that AI agents can work on it autonomously while gua
 
 ### OpenSpec
 
-[OpenSpec](https://openspec.dev) drives spec-driven development. The current spec is in [openspec/specs/](openspec/specs/rotating-cube/spec.md): one cube, centered and continuously rotating, in a canvas that fills the viewport and resizes with the window, with drag-to-orbit via drei's `OrbitControls`. [SPEC.md](SPEC.md) only points there.
+[OpenSpec](https://openspec.dev) drives spec-driven development. The current spec is in [openspec/specs/](openspec/specs/rotating-cube/spec.md): one cube, centered and rotating continuously unless paused, in a canvas that fills the viewport and resizes with the window, with drag-to-orbit via drei's `OrbitControls`. A Pause/Resume button, also toggled by Space, stops and restarts the rotation without a jump, and orbiting keeps working while paused. The button is the only UI overlay. [SPEC.md](SPEC.md) only points there.
 
 Every behavior change follows the workflow, using the Claude Code commands installed by `openspec init`:
 
