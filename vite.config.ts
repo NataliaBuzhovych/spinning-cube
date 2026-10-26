@@ -21,7 +21,12 @@ export default defineConfig({
       ],
       reporter: ['text', 'lcov'],
       // Set from actual coverage; raise when it improves, never lower.
-      thresholds: { statements: 87, branches: 50, functions: 100, lines: 100 },
+      thresholds: {
+        statements: 100,
+        branches: 100,
+        functions: 100,
+        lines: 100,
+      },
     },
   },
 })

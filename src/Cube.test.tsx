@@ -46,4 +46,29 @@ describe('Cube', () => {
     expect(mesh.rotation.x).toBe(0)
     expect(mesh.rotation.y).toBe(0)
   })
+
+  it('does not rotate while paused', async () => {
+    const renderer = await ReactThreeTestRenderer.create(<Cube paused />)
+    const mesh = renderer.scene.children[0].instance as Mesh
+
+    await renderer.advanceFrames(3, 1)
+
+    expect(mesh.rotation.x).toBe(0)
+    expect(mesh.rotation.y).toBe(0)
+  })
+
+  it('resumes from the paused orientation without a jump', async () => {
+    const renderer = await ReactThreeTestRenderer.create(<Cube />)
+    const mesh = renderer.scene.children[0].instance as Mesh
+    await renderer.advanceFrames(1, 1)
+    const pausedAt = mesh.rotation.y
+
+    await renderer.update(<Cube paused />)
+    await renderer.advanceFrames(2, 1)
+    expect(mesh.rotation.y).toBe(pausedAt)
+
+    await renderer.update(<Cube />)
+    await renderer.advanceFrames(1, 1)
+    expect(mesh.rotation.y).toBeCloseTo(pausedAt + ROTATION_SPEED)
+  })
 })
